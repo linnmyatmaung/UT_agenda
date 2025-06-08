@@ -22,19 +22,25 @@ function MainPage() {
   };
 
   useEffect(() => {
-    fetchAgenda(); // Fetch the agenda data initially
+  fetchAgenda(); // Initial fetch
 
-    // Listen to the "agendaUpdated" event
-    socket.on("agendaUpdated", () => {
-      console.log("Agenda updated, fetching new data...");
-      fetchAgenda();
-    });
+  socket.on("agendaUpdated", (updated) => {
+    console.log("Received updated agenda:", updated);
 
-    // Cleanup the socket event listener when the component is unmounted
-    return () => {
-      socket.off("agendaUpdated");
-    };
-  }, []);
+    setAgendaData((prev) =>
+      prev.map((agenda) =>
+        agenda.id === updated.id
+          ? { ...agenda, ...updated } // Update the current agenda
+          : { ...agenda, current: false } // Unset others as 'current'
+      )
+    );
+  });
+
+  return () => {
+    socket.off("agendaUpdated");
+  };
+}, []);
+
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center sm:py-12">
